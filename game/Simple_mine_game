@@ -1,0 +1,246 @@
+using System; 
+ 
+ 
+ namespace SimpleMineGame 
+ { 
+     static class Program 
+     { 
+         static void Main() 
+         { 
+             Console.WriteLine("The aim is to get to the top of the board." + 
+                 " You start at the bottom left and can navigate up, down, left and right using the 'U', 'D', 'L' and 'R' keys respectively." + 
+                 " A message will be printed below with the outcome of your move after the move is made."); 
+             Console.WriteLine(); 
+             var game = new Game(); 
+             do 
+             { 
+                 var input = Console.ReadKey(true).KeyChar; 
+                 Console.WriteLine(game.TakeTurn(input)); 
+             } while (!game.GameOver); 
+ 
+ 
+             Console.WriteLine(); 
+             Console.WriteLine("Game over. Press any key to continue..."); 
+             Console.ReadLine(); 
+         } 
+     } 
+ 
+ 
+     internal class Game 
+     { 
+         private readonly Board board = new Board(8, 8); 
+         public bool GameOver { get; private set; } 
+ 
+ 
+         public string TakeTurn(char userInput) 
+         { 
+             try 
+             { 
+                 board.Move(userInput); 
+             } 
+             catch (InputException) 
+             { 
+                 return "Invalid move."; 
+             } 
+ 
+ 
+             var statusMessage = board.GetStatusMessage(); 
+ 
+ 
+             if (board.Player.Y == 0) 
+             { 
+                 GameOver = true; 
+                 statusMessage += ". You've won!"; 
+             } 
+             else if (!board.Player.IsAlive) 
+             { 
+                 GameOver = true; 
+                 statusMessage += ". You died"; 
+             } 
+             return statusMessage; 
+         } 
+     } 
+ 
+ 
+     internal class InputException : ApplicationException 
+     { 
+     } 
+ 
+ 
+     internal class Board 
+     { 
+         private readonly int cellsAcross; 
+         private readonly int cellsDown; 
+         private const double MineDensity = 0.2; 
+         private readonly Cell[,] cells; 
+         private readonly Player player = new Player(); 
+ 
+ 
+         public Board(int cellsAcross, int cellsDown) 
+         { 
+             this.cellsAcross = cellsAcross; 
+             this.cellsDown = cellsDown; 
+             cells = new Cell[cellsAcross, cellsDown]; 
+ 
+ 
+             player.Y = cellsDown - 1; 
+ 
+ 
+             var random = new Random(); 
+             for (var i = 0; i < cellsAcross; i++) 
+             { 
+                 for (var j = 0; j < cellsDown; j++) 
+                 { 
+                     if (random.NextDouble() < MineDensity) 
+                     { 
+                         cells[i, j] = new Mine(); 
+                     } 
+                     else 
+                     { 
+                         cells[i, j] = new Cell(); 
+                     } 
+                 } 
+             } 
+ 
+ 
+             // Always let the player start on an unmined cell 
+             cells[player.X, player.Y] = new Cell(); 
+         } 
+ 
+ 
+         public Player Player 
+         { 
+             get { return player; } 
+         } 
+ 
+ 
+         public void Move(char direction) 
+         { 
+             switch (direction) 
+             { 
+                 case 'U': 
+                 case 'u': 
+                     if (Player.Y > 0) 
+                     { 
+                         Player.MoveUp(); 
+                     } 
+                     break; 
+                 case 'D': 
+                 case 'd': 
+                     if (Player.Y < cellsDown - 1) 
+                     { 
+                         Player.MoveDown(); 
+                     } 
+                     break; 
+                 case 'L': 
+                 case 'l': 
+                     if (Player.X > 0) 
+                     { 
+                         Player.MoveLeft(); 
+                     } 
+                     break; 
+                 case 'R': 
+                 case 'r': 
+                     if (Player.X < cellsAcross - 1) 
+                     { 
+                         Player.MoveRight(); 
+                     } 
+                     break; 
+                 default: 
+                     throw new InputException(); 
+             } 
+             CurrentCellForPlayer.OnEntry(Player); 
+         } 
+ 
+ 
+         public string GetStatusMessage() 
+         { 
+             var cellMessage = CurrentCellForPlayer.GetMessage(); 
+             return cellMessage + " at " + Player.Location; 
+         } 
+ 
+ 
+         private Cell CurrentCellForPlayer 
+         { 
+             get { return cells[Player.X, Player.Y]; } 
+         } 
+     } 
+ 
+ 
+     internal class Player 
+     { 
+         public Player() 
+         { 
+             Lives = 2; 
+         } 
+ 
+ 
+         public int Lives { get; set; } 
+         public int X { get; set; } 
+         public int Y { get; set; } 
+ 
+ 
+         public bool IsAlive 
+         { 
+             get { return Lives > 0; } 
+         } 
+ 
+ 
+         public string Location 
+         { 
+             get { return string.Format("({0},{1})", X, Y); } 
+         } 
+ 
+ 
+         public void MoveUp() 
+         { 
+             Y -= 1; 
+         } 
+ 
+ 
+         public void MoveDown() 
+         { 
+             Y += 1; 
+         } 
+ 
+ 
+         public void MoveLeft() 
+         { 
+             X -= 1; 
+         } 
+ 
+ 
+         public void MoveRight() 
+         { 
+             X += 1; 
+         } 
+     } 
+ 
+ 
+     internal class Cell 
+     { 
+         public virtual void OnEntry(Player player) 
+         { } 
+ 
+ 
+         public virtual string GetMessage() 
+         { 
+             return "Safely arrived"; 
+         } 
+     } 
+ 
+ 
+     internal class Mine : Cell 
+     { 
+         public override void OnEntry(Player player) 
+         { 
+             player.Lives -= 1; 
+         } 
+ 
+ 
+         public override string GetMessage() 
+         { 
+             return "Bang. You hit a mine"; 
+         } 
+     } 
+ } 

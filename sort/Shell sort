@@ -1,66 +1,71 @@
-//shell sort 
- 
- 
- #include <iostream> 
- 
- 
- using namespace std; 
- 
- 
- int iCount (int *A,int size) 
- { 
-     int counter = 0 ; 
- 
- 
-     for (int i = 0  ; i < size ; i++) 
-     { 
-         for (int j = i+1 ; j < size -1 ; j++) 
-         { 
-         if(A[i] > A[j]) 
-              counter++; 
-         } 
-     } 
-     return counter ; 
- } 
- 
- 
- 
- 
- int main() 
- { 
- 
- 
- 
- 
-     int array[5] = {2,3,9,5,6}; 
- 
- 
-     int size = sizeof(array)/sizeof(int); 
- 
- 
-     for (int gap = size/2 ; gap > 0 ; gap /=2 ) 
-     { 
-         for  (int i = gap ; i < size ; i++) 
-         { 
-             for ( int j = i-gap ; j >= 0 ; j= j-gap) 
-             { 
-                 if(array[j] > array[j+gap]) 
-                     swap(array[j],array[j+gap]);             } 
-         } 
-         cout << "Remaining Inverstion : " << iCount(array,size ) << endl; 
-     } 
- 
- 
- 
- 
- 
- 
- 
- 
-     for (int i = 0 ; i < size ; i++) 
-     { 
- 
- 
-        cout << array[i] << " " ; 
-     } 
- } 
+#include<stdio.h>
+
+#include<conio.h>
+
+int main()
+
+{
+
+ int arr[30];
+
+ int i,j,k,tmp,num;
+
+ printf("Toplam sayi miktarini giriniz: ");
+
+ scanf("%d", &num);
+
+ for(k=0; k<num; k++)
+
+ {
+
+   printf("\%d.numarayi girin : ",k+1);
+
+   scanf("%d",&arr[k]);
+
+ }
+
+ for(i=num/2; i>0; i=i/2)
+
+ {
+
+   for(j=i; j<num; j++)
+
+   {
+
+     for(k=j-i; k>=0; k=k-i)
+
+     {
+
+        if(arr[k+i]>=arr[k])
+
+            break;
+
+        else
+
+        {
+
+            tmp=arr[k];
+
+            arr[k]=arr[k+i];
+
+            arr[k+i]=tmp;
+
+        }
+
+     }
+
+   }
+
+ }
+
+ printf("\n");
+
+ for(k=0; k<num; k++)
+
+     printf("%d\t",arr[k]);
+
+ getch();
+
+ return 0;
+
+}
